@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ONBoard Weighing Scale App</title>
+
+    <script src="weighing_scale.js" defer></script>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: 100vh;
+      }
+      .record-container,
+      .table-container {
+        position: relative;
+        width: 80%;
+        max-width: 800px;
+        padding: 20px 10px;
+        height: 300px; /* Adjust height to fit two rows plus header */
+
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+      }
+      .table-container {
+        overflow: auto;
+        height: 200px;
+        height: fit-content;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+      .record-container {
+        display: flex;
+        flex-direction: column;
+        align-items: left;
+        padding-left: 30px;
+        justify-content: top;
+        margin-top: 15px;
+      }
+      .record-container h2 {
+        margin-top: 0;
+        color: #4caf50;
+        margin-top: 20px;
+        font-size: 15px;
+      }
+      .record-container p {
+        margin: 5px 0;
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #4caf50;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+      h2 {
+        text-align: left;
+        color: #333;
+        font-size: 17px;
+      }
+      strong {
+        color: gray;
+        font-weight: normal;
+      }
+      .logo {
+        position: absolute;
+        right: 0;
+      }
+
+      button {
+        margin-top: 10px;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        border: none;
+        background: none;
+        width: 300px;
+      }
+      .refresh_logo {
+        padding-right: 5px;
+      }
+      button:hover {
+        cursor: pointer;
+      }
+      .refresh_text {
+        color: #2c652e;
+      }
+
+      @media (max-width: 680px) {
+        .logo {
+          display: none;
+        }
+      }
+
+      @media only screen and (max-width: 480px) and (orientation: portrait) {
+        .record-container h2 {
+          font-size: 16px;
+        }
+
+        .record-container p {
+          font-size: 14px;
+        }
+
+        .Title1 {
+          font-size: 16px;
+        }
+      }
+
+      @media only screen and (max-width: 539px) {
+        body {
+          padding: 10px;
+        }
+        .table-container {
+          font-size: 16px;
+          padding: 15px 5px;
+        }
+
+        .table-container tr th,
+        tr {
+          font-size: 10px;
+        }
+
+        .table-container {
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="record-container">
+      <h2 class="Title2">Record Details</h2>
+      <p><strong>Updated As Of : </strong> <span class="as_off"></span></p>
+      <p>
+        <strong class="c1_2">Column 1:</strong> <span class="d1_2">Data 1</span>
+      </p>
+      <p>
+        <strong class="c2_2">Column 2:</strong> <span class="d2_2">Data 1</span>
+      </p>
+      <p>
+        <strong class="c3_2">Column 3:</strong> <span class="d3_2">Data 1</span>
+      </p>
+      <p>
+        <strong class="c4_2">Column 4:</strong> <span class="d4_2">Data 1</span>
+      </p>
+      <p>
+        <strong class="c5_2">Column 5:</strong> <span class="d5_2">Data 1</span>
+      </p>
+      <img src="icon.jpg" alt="" width="275px" height="275px" class="logo" />
+      <button class="refresh_btn">
+        <img
+          src="refresh.png"
+          alt=""
+          width="20px"
+          height="20px"
+          class="refresh_logo"
+        />
+        <span class="refresh_text">Refresh</span>
+      </button>
+    </div>
+
+    <h2 class="Title1">Styled Tables</h2>
+    <div class="table-container">
+      <table id="myTable" class="myTablec">
+        <tr>
+          <th class="c1">Column 1</th>
+          <th class="c2">Column 2</th>
+          <th class="c3">Column 3</th>
+          <th class="c4">Column 4</th>
+          <!-- <th class="c5">Column 5</th> -->
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
