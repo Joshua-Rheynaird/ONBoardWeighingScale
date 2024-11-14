@@ -33,27 +33,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const get_data2 = await fetchData("!I:M");
+  const get_initbargedate = await fetchData("!O:O");
+  const get_bargeDate = await get_initbargedate.json();
+
   const text_data2 = await get_data2.json();
-  console.log(text_data2);
+  console.log(get_bargeDate);
   //data for current log
   //Title and column header
-  const date = new Date();
-  const formattedDate =
-    date.toISOString().split("T")[0] + " " + date.toTimeString().split(" ")[0];
-  console.log(formattedDate);
-  document.querySelector(".as_off").innerHTML = formattedDate;
+  // const date = new Date();
+  // const formattedDate =
+  //   date.toISOString().split("T")[0] + " " + date.toTimeString().split(" ")[0];
+  // console.log(formattedDate);
+  // document.querySelector(".as_off").innerHTML = formattedDate;
 
   document.querySelector(".Title2").innerHTML = "ONBoard Weighing Scale";
-  document.querySelector(".c1_2").innerHTML = text_data2.values[1][0] + " : ";
+  document.querySelector(".c1_2").innerHTML =
+    "Current Values as of Date" + " : ";
   document.querySelector(".c2_2").innerHTML = text_data2.values[1][1] + " : ";
-  document.querySelector(".c3_2").innerHTML = text_data2.values[1][2] + " : ";
-  document.querySelector(".c4_2").innerHTML = text_data2.values[1][3] + " : ";
-  document.querySelector(".c5_2").innerHTML = "Accummulated Weight" + " : ";
+  document.querySelector(".c3_2").innerHTML = "On-board / Off - board" + " : ";
+  document.querySelector(".c4_2").innerHTML = "Recent Load" + " : ";
+  document.querySelector(".c5_2").innerHTML = "Barging to date (kg)" + " : ";
+  document.querySelector(".c6_2").innerHTML = "From" + " : ";
   document.querySelector(".d1_2").innerHTML = text_data2.values[2][0];
   document.querySelector(".d2_2").innerHTML = text_data2.values[2][1];
   document.querySelector(".d3_2").innerHTML = text_data2.values[2][2];
   document.querySelector(".d4_2").innerHTML = text_data2.values[2][3];
   document.querySelector(".d5_2").innerHTML = get_accummulatedSum.toFixed(2);
+  document.querySelector(".d6_2").innerHTML = get_bargeDate.values[2];
 });
 
 async function fetchData(range) {
