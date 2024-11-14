@@ -51,6 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     "Current Values as of Date" + " : ";
   document.querySelector(".c2_2").innerHTML = text_data2.values[1][1] + " : ";
   document.querySelector(".c3_2").innerHTML = text_data2.values[1][2] + " : ";
+
+  
   document.querySelector(".c4_2").innerHTML = "Recent Load" + " : ";
   document.querySelector(".c5_2").innerHTML = "Barging to date (kg)" + " : ";
   document.querySelector(".c6_2").innerHTML = "From" + " : ";
