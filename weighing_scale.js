@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // console.log(formattedDate);
   // document.querySelector(".as_off").innerHTML = formattedDate;
 
-  document.querySelector(".Title2").innerHTML = "ONBoard Weighing Scale";
+  document.querySelector(".Title2").innerHTML = "Onboard Weighing Scale";
   document.querySelector(".c1_2").innerHTML =
     "Current Values as of Date" + " : ";
   document.querySelector(".c2_2").innerHTML = text_data2.values[1][1] + " : ";
