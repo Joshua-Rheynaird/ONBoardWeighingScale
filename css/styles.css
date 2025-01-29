@@ -1,0 +1,340 @@
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(-45deg, #29353C, #44576D, #768A96, #AAC7D8, #DFEBF6, #E6E6E6);
+    background-size: 400% 400%;
+    animation: gradientMove 6s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .preloader-image {
+    width: 150px;
+  }
+  
+  /* Keyframes for background animation */
+  @keyframes gradientMove {
+    0% {
+        background-position: 0% 0%;
+      }
+      25% {
+        background-position: 50% 100%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      75% {
+        background-position: 50% 0%;
+      }
+      100% {
+        background-position: 0% 0%;
+      }
+  }
+  
+
+
+body {
+    font-family: "Arial", sans-serif;
+    background-color: #1e2b3a; /* Light gray from the palette */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 130vh;
+}
+.record-container,
+.table-container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    padding: 20px 10px;
+    height: 500px; 
+    border: 1px solid #AAC7D8; 
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #DFEBF6; 
+}
+.table-container {
+    overflow: auto;
+    height: fit-content;
+    padding: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.record-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    padding-left: 30px;
+    justify-content: top;
+    margin-top: 15px;
+}
+.record-container h2 {
+    margin-top: 0;
+    color: #44576D; /* Dark blue */
+    margin-top: 20px;
+    font-size: 15px;
+}
+.record-container p {
+    margin: 5px 0;
+    color: #29353C; /* Dark gray */
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th,
+td {
+    border: 1px solid #AAC7D8; /* Light blue */
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #44576D; /* Dark blue */
+    color: white;
+    position: sticky;
+    top: 0;
+}
+tr:nth-child(even) {
+    background-color: #DFEBF6; /* Very light blue */
+}
+tr:hover {
+    background-color: #AAC7D8; /* Light blue */
+}
+h2 {
+    text-align: left;
+    color: #44576D; /* Dark blue */
+    font-size: 17px;
+}
+strong {
+    color: gray;
+    font-weight: normal;
+}
+.logo {
+    position: absolute;
+    right: 0;
+    width: 30%;
+}
+
+button {
+    margin-top: 10px;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    border: none;
+    background: none;
+    width: 300px;
+}
+.icons {
+    display: flex;
+    width: 70px;
+}
+.icon-svg {
+    width: 20px;
+    height: 20px;
+}
+.report{
+    gap: 1.25rem;
+}
+button:hover {
+    cursor: pointer;
+}
+.icon-title {
+    color: #29353C; /* Dark gray */
+}
+
+@media (max-width: 680px) {
+    .logo {
+        display: block;
+        width: 20%;
+    }
+}
+
+@media only screen and (max-width: 480px) and (orientation: portrait) {
+    .record-container h2 {
+        font-size: 16px;
+    }
+
+    .record-container p {
+        font-size: 14px;
+    }
+
+    .Title1 {
+        font-size: 16px;
+    }
+}
+
+@media only screen and (max-width: 539px) {
+    body {
+        padding: 10px;
+    }
+    .table-container {
+        font-size: 16px;
+        padding: 15px 5px;
+    }
+
+    .table-container tr th,
+    tr {
+        font-size: 10px;
+    }
+
+    .table-container {
+        padding: 0;
+    }
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 1px solid #AAC7D8; /* Light blue */
+    border-radius: 10px;
+    padding: 30px;
+    width: 300px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+.popup-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #44576D; /* Dark blue */
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #AAC7D8; /* Light blue */
+    border-radius: 5px;
+}
+.popup-actions {
+    display: flex;
+    justify-content: space-between;
+}
+.popup-actions button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+}
+.popup-actions .close-btn {
+    background-color: #F44336; /* Red */
+    color: white;
+    width: 80px;
+    text-align: center;
+}
+.popup-actions .save-btn {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    width: 80px;
+    text-align: center;
+}
+form {
+    margin: auto;
+    padding-right: 15px;
+}
+.sensor-status {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+.sensor-status input[type="radio"] {
+    display: none;
+}
+.sensor-status label {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 2px solid #AAC7D8; 
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #DFEBF6;
+    color: #29353C; 
+    transition: all 0.3s ease;
+}
+.sensor-status input[type="radio"]:checked + label {
+    background-color: #44576D; 
+    border-color: #44576D;
+    color: white;
+}
+.sensor-status label:hover {
+    background-color: #E6E6E6; 
+}
+.grading {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+.grading-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 50px;
+}
+.grading-option.green {
+    background-color: #4CAF50; 
+    color: white;
+    border-color: #4CAF50;
+}
+.grading-option.yellow {
+    background-color: #FFEB3B; 
+    color: black;
+    border-color: #FFC107;
+}
+.grading-option.red {
+    background-color: #F44336; 
+    color: white;
+    border-color: #F44336;
+}
+.grading-option:hover {
+    opacity: 0.8;
+}
+
+.grading input[type="radio"] {
+    display: none; 
+}
+.grading input[type="radio"]:checked + label {
+    border: 2px solid black;
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.color-button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    margin: 2px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+  }
+  .color-button.glow {
+    border: 1px solid black;
+    box-shadow: 0 0 10px 4px rgba(0, 0, 0, 0.5); 
+  }
