@@ -1,3 +1,152 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://rvdzjuvyewgunhwpmlnu.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2ZHpqdXZ5ZXdndW5od3BtbG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgxNDQ3MTAsImV4cCI6MjA1MzcyMDcxMH0.hAohKOlZ3PguyYZeVDA1ngHUYWdqYXg0S2WJ-I2lCHA";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const REFRESH_INTERVAL = 3600000; // 1 hour in milliseconds
+
+let chart = null; // Track the existing chart instance
+
+async function renderChart() {
+  const data = await fetchTruckTrips();
+  if (!data || data.length === 0) return;
+
+  const tripDates = data.map(item => item.trip_date);
+  const avgWeights = data.map(item => item.avg_weight);
+
+  const MAX_WEIGHT = 50000000;
+  let maxCount = 0;
+
+  // Accumulate the weights to create a cumulative total
+  let cumulativeWeights = [];
+  let cumulativeTotal = 0;
+
+  avgWeights.forEach(weight => {
+    cumulativeTotal += weight;
+    cumulativeWeights.push(cumulativeTotal);
+    
+    if (cumulativeTotal >= MAX_WEIGHT) {
+      maxCount++;
+      cumulativeTotal = MAX_WEIGHT; // Limit the value to MAX_WEIGHT
+    }
+  });
+
+  //document.querySelector(".countReachedMax").innerHTML = maxCount;
+
+  //console.log(`The graph reached the maximum value (${MAX_WEIGHT} kg) or above ${maxCount} times.`);
+
+  const ctx = document.getElementById('weightChart').getContext('2d');
+
+  // Destroy the existing chart instance if it exists
+  if (chart) {
+    chart.destroy();
+  }
+
+  // Create a new chart
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: tripDates, // Use actual trip dates here
+      datasets: [{
+        label: 'Cumulative Total Weight (kg)',
+        data: cumulativeWeights, // Use accumulated weight data
+        borderColor: '#e6e6e6',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Cumulative Total Weight (kg)'
+          },
+          max: 100000, // Cap the y-axis to a max value for display purposes
+          ticks: {
+            // Optionally, set the tick step size for better visual scaling
+            stepSize: Math.ceil(MAX_WEIGHT / 5), // Divide the max weight into manageable steps
+            callback: function(value) {
+              // Display values in readable format
+              return value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Fetch truck trips data
+async function fetchTruckTrips() {
+  const { data, error } = await supabase.rpc('get_truck_trips_avg_weight');
+
+  if (error) {
+    console.error("Error fetching truck trips data:", error);
+    return [];
+  }
+
+  return data;
+}
+
+// Initialize the app
+function initializeApp() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash === 'record-section' || hash === 'logger-section' || hash === 'report-section') {
+    showSection(hash);
+  } else {
+    showSection('record-section');
+  }
+}
+
+// Show a section and update history
+window.showSection = function (sectionId) {
+  document.querySelectorAll('section').forEach(section => {
+    section.classList.add('hidden');
+  });
+  document.getElementById(sectionId).classList.remove('hidden');
+
+  // Show/hide buttons based on active section
+  if (sectionId === 'record-section') {
+    document.getElementById('record-button').classList.add('hidden');
+    document.getElementById('logger-button').classList.remove('hidden');
+    document.getElementById('report-button').classList.remove('hidden');
+  } else if (sectionId === 'logger-section') {
+    document.getElementById('logger-button').classList.add('hidden');
+    document.getElementById('record-button').classList.remove('hidden');
+    document.getElementById('report-button').classList.remove('hidden');
+  } else if (sectionId === 'report-section') {
+    document.getElementById('record-button').classList.remove('hidden');
+    document.getElementById('logger-button').classList.remove('hidden');
+    document.getElementById('report-button').classList.add('hidden');
+  }
+
+  history.pushState({ section: sectionId }, '', `#${sectionId}`);
+};
+
+// Handle back button
+window.addEventListener('popstate', (event) => {
+  const state = event.state;
+  if (state && state.section) {
+    showSection(state.section);
+  } else {
+    showSection('record-section');
+  }
+});
+
+// Initialize the app when the page loads
 window.addEventListener('load', () => {
   const preloader = document.getElementById('preloader');
   const mainContent = document.getElementById('main-content');
@@ -6,153 +155,157 @@ window.addEventListener('load', () => {
     preloader.style.display = 'none';
     mainContent.style.display = 'block';
   }, 2000);
+
+  initializeApp();
 });
 
-const SPREADSHEET_ID = "1fbiqeuKFJHd0xR2qI2HixXGYCgwN1suxMI2BXrH4uNg";
-const API_KEY = "AIzaSyC-7jwS9MVNWppcrztoXuVr9ZTIfFSvH1M";
-const SHEET_NAME = "ONBOARD_WEIGHING_SCALE";
-//const CLIENT_ID ="1001354670869-6u2veq10hlbo5bmhv74c4q1ibp3ob7ru.apps.googleusercontent.com"//web
-//const CLIENT_ID ="1001354670869-k62gioa5vsvqp9bcipuu81ebssi9r8rq.apps.googleusercontent.com"//mobile
-const REFRESH_INTERVAL = 3600000; //milliseconds
 
-/*function initApiClient() {
-  gapi.client.init({
-    apiKey: API_KEY,
-    clientId: CLIENT_ID,
-    discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-    scope: "https://www.googleapis.com/auth/drive.readonly",
-  }).then(function () {
-    console.log('Google API initialized');
-  });
-}
-
-function loadClient() {
-  gapi.load("client:auth2", initApiClient);
-}*/
-
-document.addEventListener("DOMContentLoaded", async () => {
-  //refresh button click event to refresh API
-  document.querySelector(".refresh_btn").addEventListener("click", () => {
-    window.location.reload(true);
-  });
-
-  //auto refresh event 1hour
-  delayedTask(REFRESH_INTERVAL);
-
-  const get_data = await fetchData("!A:F");
-  const totalProduction = await getHighestValue();
-  //console.log(get_accummulatedSum);
-  const text_data = await get_data.json();
-
-  for (let i = text_data.values.length - 1; i >= 2; i--) {
-    //console.log(text_data.values[i][3])
-    addRow(text_data.values[i]);
+// Handle back button
+window.addEventListener('popstate', (event) => {
+  const state = event.state;
+  if (state && state.section) {
+    showSection(state.section);
+  } else {
+    showSection('record-section');
   }
-
-  const get_data2 = await fetchData("!J:N");
-  const get_initbargedate = await fetchData("!P:P");
-  const get_bargeDate = await get_initbargedate.json();
-
-  const text_data2 = await get_data2.json();
-  const originalDate = text_data2.values[2][0];
-  const formattedDate = formatDate(originalDate);
-  const originalTime = text_data2.values[2][1];
-  const formattedTime = formatTime(originalTime);
-
-  document.querySelector(".date-val").innerHTML = formattedDate;
-  document.querySelector(".time-val").innerHTML = formattedTime;
-  document.querySelector(".stats-val").innerHTML = text_data2.values[2][2];
-  document.querySelector(".load-val").innerHTML = text_data2.values[2][3] + " kg";
-  document.querySelector(".trips-val").innerHTML = text_data2.values[2][4];
-  document.querySelector(".total-val").innerHTML = totalProduction + " kg";
-  //document.querySelector(".d6_2").innerHTML = get_bargeDate.values[2];
 });
 
-async function fetchData(range) {
-  const URL_STRING = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/ONBOARD_WEIGHING_SCALE${range}?key=${API_KEY}`;
+// Initialize the app when the page loads
+window.addEventListener('load', () => {
+  const preloader = document.getElementById('preloader');
+  const mainContent = document.getElementById('main-content');
 
-  return await fetch(URL_STRING);
-}
+  setTimeout(() => {
+    preloader.style.display = 'none';
+    mainContent.style.display = 'block';
+  }, 2000);
 
-async function getHighestValue() {
-  try {
-    // Fetch the data
-    const get_data = await fetchData("!S:S");
-    const weightArray = await get_data.json(); // Assuming this returns an array of numbers
+  initializeApp();
+  fetchData();
+});
 
-    let highestValue = Number.NEGATIVE_INFINITY;
+// Fetch and display data
+window.fetchData = async function () {
+  const selectedFilter = document.getElementById("selectedFilter").textContent.toLowerCase();
+  const colorFilter = selectedFilter === "all" ? "" : selectedFilter;
 
-    if (weightArray.values.length > 2) {
-      for (let i = 2; i < weightArray.values.length; i++) {
-        const num = parseFloat(weightArray.values[i]);
+  let { data, error } = await supabase
+    .from("loading")
+    .select("id, created_at, weight, grade, shift, truck_id, sensor_status")
+    .order("created_at", { ascending: false });
 
-        if(num > highestValue){
-          highestValue = num;
-        }
-      }
-    } 
-    return highestValue;
-  } catch (error) {
-    console.error("Error fetching data or finding the highest value:", error);
-    throw error;
+  if (error) {
+    console.error("Error fetching data:", error);
+    return;
   }
-}
 
+  if (colorFilter) {
+    data = data.filter(row => row.grade && row.grade.toLowerCase() === colorFilter);
+  }
 
-function addRow(data_lst) {
-  const colors = ['green', 'yellow', 'red', 'white', 'blue', 'black'];
+  const tableBody = document.getElementById("tableBody");
+  tableBody.innerHTML = "";
 
-  var table = document.getElementById("myTable");
+  data.forEach(row => {
+    const date = new Date(row.created_at);
+    const formattedDate = date.toISOString().split("T")[0];
+    const formattedTime = date.toTimeString().split(" ")[0];
 
-  var newRow = document.createElement("tr");
-  var cell1 = document.createElement("td");
-  var cell2 = document.createElement("td");
-  var cell3 = document.createElement("td");
-  var cell4 = document.createElement("td");
-  var cell5 = document.createElement("td");
-  var cell6 = document.createElement("td");
-
-  cell1.textContent = data_lst[0];
-  cell2.textContent = data_lst[1];
-  cell3.textContent = data_lst[2];
-  cell4.textContent = data_lst[3];
-  cell5.textContent = data_lst[4];
-
-  colors.forEach(color => {
-    const button = document.createElement("button");
-    button.className = "color-button";
-    button.style.backgroundColor = color;
-    button.onclick = () => {
-      cell6.childNodes.forEach(btn => btn.classList.remove("glow"));
-      button.classList.add("glow");
-    };
-    cell6.appendChild(button);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${formatDate(formattedDate)}</td>
+      <td>${formatTime(formattedTime)}</td>
+      <td>${row.truck_id || "N/A"}</td>
+      <td>${row.shift}</td>
+      <td>${row.sensor_status}</td>
+      <td>${row.weight.toFixed(2)} kg</td>
+      <td>
+        <div class="color-picker">
+          <div class="selected-color" style="background-color: ${row.grade};" onclick="toggleDropdown('${row.id}')"></div>
+          <div class="color-options" id="color-options-${row.id}">
+            <div class="color-option" style="background-color: red;" onclick="selectColor('${row.id}', 'red')"></div>
+            <div class="color-option" style="background-color: blue;" onclick="selectColor('${row.id}', 'blue')"></div>
+            <div class="color-option" style="background-color: yellow;" onclick="selectColor('${row.id}', 'yellow')"></div>
+            <div class="color-option" style="background-color: black;" onclick="selectColor('${row.id}', 'black')"></div>
+            <div class="color-option" style="background-color: white;" onclick="selectColor('${row.id}', 'white')"></div>
+            <div class="color-option" style="background-color: green;" onclick="selectColor('${row.id}', 'green')"></div>
+          </div>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(tr);
   });
 
-  const randomIndex = Math.floor(Math.random() * colors.length);
-      const randomButton = cell6.childNodes[randomIndex];
-      randomButton.classList.add("glow");
-  
+  const truckTripsData = await fetchTruckTrips();
 
-  newRow.appendChild(cell1);
-  newRow.appendChild(cell2);
-  newRow.appendChild(cell3);
-  newRow.appendChild(cell4);
-  newRow.appendChild(cell5);
-  newRow.appendChild(cell6);
+  if (data.length > 0) {
+    const mostRecent = data[0];
+    const date = new Date(mostRecent.created_at);
+    const formattedDate = date.toISOString().split("T")[0];
+    const formattedTime = date.toTimeString().split(" ")[0];
 
-  table.appendChild(newRow);
-}
+    const truckTrips = truckTripsData.find(truck => truck.truck_id === mostRecent.truck_id);
 
-async function delayedTask(ms) {
-  await new Promise((resolve) => setTimeout(() => resolve(), ms));
-  console.log("Restarting every : " + ms);
-  window.location.reload(true);
-}
+    document.querySelector(".date-val").textContent = formatDate(formattedDate);
+    document.querySelector(".time-val").textContent = formatTime(formattedTime);
+    document.querySelector(".stats-val").textContent = `${mostRecent.sensor_status}`;
+    document.querySelector(".load-val").textContent = `${mostRecent.weight.toFixed(2)} kg`;
+    document.querySelector(".trips-val").textContent = truckTrips ? truckTrips.total_trips : "N/A";
+    document.querySelector(".total-val").textContent = `${data.reduce((sum, row) => sum + row.weight, 0).toFixed(2)} kg`;
+  }
 
+  renderChart(); // Render the chart after data is fetched
+};
+
+// Update grade in the database
+window.updateGrade = async function (id, color) {
+  const { error } = await supabase
+    .from("loading")
+    .update({ grade: color })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating grade:", error);
+    alert("Failed to update grade.");
+  } else {
+    console.log("Grade updated successfully.");
+    fetchData();
+  }
+};
+
+// Toggle color dropdown
+window.toggleDropdown = function (id) {
+  const dropdown = document.getElementById(`color-options-${id}`);
+  dropdown.classList.toggle("active");
+};
+
+// Select color and update grade
+window.selectColor = function (id, color) {
+  const selectedColor = document.querySelector(`#color-options-${id}`).previousElementSibling;
+  selectedColor.style.backgroundColor = color;
+
+  toggleDropdown(id);
+  updateGrade(id, color);
+};
+
+// Toggle filter dropdown
+window.toggleFilterDropdown = function () {
+  const dropdownOptions = document.getElementById("filterOptions");
+  dropdownOptions.classList.toggle("active");
+};
+
+// Select filter and fetch data
+window.selectFilter = function (value) {
+  const selectedFilter = document.getElementById("selectedFilter");
+  selectedFilter.textContent = value === "all" ? "All" : value;
+
+  toggleFilterDropdown();
+  fetchData();
+};
+
+// Format date
 function formatDate(dateString) {
-  //console.log(dateString);
-  const [day, month, year] = dateString.split('/').map(Number);
+  const [year, month, day] = dateString.split('-').map(Number);
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -160,60 +313,19 @@ function formatDate(dateString) {
   return `${months[month - 1]} ${day}, ${year}`;
 }
 
+// Format time
 function formatTime(timeString) {
   const [hours, minutes] = timeString.split(':').map(Number);
   const period = hours >= 12 ? "PM" : "AM";
-  const formattedHours = hours % 12 || 12; 
+  const formattedHours = hours % 12 || 12;
   return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
-function openPopup() {
-  document.getElementById('popupForm').style.display = 'block';
-}
-function closePopup() {
-  document.getElementById('popupForm').style.display = 'none';
-}
-/*
-function updateValues(spreadsheetId, range, valueInputOption, values, callback) {
-  const body = { values };
-  gapi.client.sheets.spreadsheets.values.append({
-    spreadsheetId: spreadsheetId,
-    range: range,
-    valueInputOption: valueInputOption,
-    resource: body,
-  }).then((response) => {
-    const result = response.result;
-    console.log(`${result.updatedCells} cells updated.`);
-    if (callback) callback(response);
-  }).catch((error) => {
-    document.getElementById('content').innerText = error.message;
-  });
+// Auto-refresh every hour
+async function delayedTask(ms) {
+  await new Promise((resolve) => setTimeout(() => resolve(), ms));
+  console.log("Restarting every: " + ms);
+  fetchData();
 }
 
-function submitData() {
-  const formData = {
-    date: document.getElementById('date').value,
-    time: document.getElementById('time').value,
-    shift: ' ',//document.getElementById('shift').value,
-    sensor: document.querySelector('input[name="sensor"]:checked')?.value,
-    weight: document.getElementById('weight').value,
-    grade: ' ',//document.querySelector('input[name="grade"]:checked')?.value,
-  };
-
-  const row = [
-    formData.date,
-    formData.time,
-    formData.shift,
-    formData.sensor,
-    formData.weight,
-    formData.grade,
-  ];
-
-  updateValues(SPREADSHEET_ID, "!A:F", "INSERT_ROW", [row], (response) => {
-    document.getElementById('content').innerText = "Data inserted successfully!";
-  });
-}
-
-document.addEventListener("DOMContentLoaded", loadClient);*/
-
-//keytool -list -v -keystore "C:Users\Jezza Jancinal\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+delayedTask(REFRESH_INTERVAL);
