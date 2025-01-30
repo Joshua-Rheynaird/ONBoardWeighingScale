@@ -3,140 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-
     <title>ONBoard Weighing Scale App</title>
 
-    <script src="js/weighing_scale.js" defer></script>
+    <script type="module" src="js/weighing_scale.js" defer></script>
     <link rel="stylesheet" href="css/styles.css">
 
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   </head>
   <body>
-    <div id="preloader">
+    <div id="preloader" style="">
       <img src="img/icon.png" alt="Loading..." class="preloader-image">
     </div>
-
-    <div class="popup" id="popupForm">
-      <div class="popup-header">Emergency Input</div>
-      <form>
-        <div class="form-group">
-          <label for="date">Date</label>
-          <input type="date" id="date" name="date">
-        </div>
-        <div class="form-group">
-          <label for="time">Time</label>
-          <input type="time" id="time" name="time">
-        </div>
-        <div class="form-group">
-          <label for="shift">Shift</label>
-          <input type="text" id="shift" name="shift" placeholder="Enter Shift">
-        </div>
-        <div class="form-group">
-          <label for="sensor-status">Sensor Status:</label>
-          <div class="sensor-status">
-            <input type="radio" id="onboard" name="sensor" value="ONBOARD" checked />
-            <label for="onboard">Onboard</label>
-        
-            <input type="radio" id="idling" name="sensor" value="IDLING" />
-            <label for="idling">Idling</label>
-        
-            <input type="radio" id="active" name="sensor" value="ACTIVE" />
-            <label for="active">Active</label>
-          </div>
-        </div>        
-        <div class="form-group">
-          <label for="weight">Weight (kg)</label>
-          <input type="float" id="weight" name="weight" placeholder="Weight in Kilogram">
-        </div>
-        <div class="form-group">
-          <label for="grade">Grade:</label>
-          <div class="grading">
-            <label for="green" class="grading-option green">
-              <input type="radio" id="green" name="grade" value="Green" />
-              Green
-            </label>
-            <label for="yellow" class="grading-option yellow">
-              <input type="radio" id="yellow" name="grade" value="Yellow" />
-              Yellow
-            </label>
-            <label for="red" class="grading-option red">
-              <input type="radio" id="red" name="grade" value="Red" />
-              Red
-            </label>
-          </div>
-        </div>   
-        <div class="popup-actions">
-          <button type="button" class="close-btn" onclick="closePopup()">Close</button>
-          <button type="submit" onclick="submitData()" class="save-btn">Save</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="record-container">
-      <div class="icons">
-        <button class="refresh_btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon-svg">
-            <title class="icon-title">Refresh</title>
-            <path d="M2 12A10 10 0 1 0 12 2A10 10 0 0 0 2 12M15.6 13.72A4 4 0 0 0 16 12A4 4 0 0 0 12 8V10L8.88 7L12 4V6A6 6 0 0 1 18 12A5.9 5.9 0 0 1 17.07 15.19M6 12A5.9 5.9 0 0 1 6.93 8.81L8.4 10.28A4 4 0 0 0 8 12A4 4 0 0 0 12 16V14L15 17L12 20V18A6 6 0 0 1 6 12Z" />
-          </svg>
-        </button>
-        <!--<button class="emergency_btn" onclick="openPopup()" nonce="random123">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon-svg">
-            <title>Emergency</title>
-            <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
-          </svg>
-        </button>-->
-
-        <button class="report">
-          <a href="report.html">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon-svg">
-              <title>Report</title>
-              <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
-            </svg>
-          </a>
-        </button>
-
-      </div>
       
-      <h2>Onboard Weighing Scale</h2>
-      <!-- <p><strong>Updated As Of : </strong> <span class="as_off"></span></p> -->
-      <p>
-        <strong class="date">Date: </strong> <span class="date-val">...</span>
-      </p>
-      <p>
-        <strong class="time">Time: </strong> <span class="time-val">...</span>
-      </p>
-      <p>
-        <strong class="stats">Sensor Reading Stats: </strong> <span class="stats-val">...</span>
-      </p>
-      <p>
-        <strong class="load">Recent Load: </strong> <span class="load-val">...</span>
-      </p>
-      <p>
-        <strong class="trips">Total Number of Trips: </strong> <span class="trips-val">...</span>
-      </p>
-      <p>
-        <strong class="total">Total Production: </strong> <span class="total-val">...</span>
-      </p>
-    </div>
+    <div>
+      <button id="record-button" class="nav-button" onclick="showSection('record-section')">Record</button>
+      <button id="logger-button" class="nav-button" onclick="showSection('logger-section')">Data Logger</button>
+      <button id="report-button" class="nav-button" onclick="showSection('report-section')">Storage Report</button>
+  </div>
 
-    <h2>Onboard Weighing Scale Data Logger</h2>
-    <div class="table-container">
-      <table id="myTable" class="myTablec">
-        <tr>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Shift</th>
-          <th>Sensor Status</th>
-          <th>Weight</th>
-          <th>Grade</th>
-        </tr>
-      </table>
+    <!-- Record Section -->
+    <section id="record-section" class="hidden">
+      <div class="record-container">
+        <h2>Onboard Weighing Scale</h2>
+        <p>
+          <strong class="date">Date: </strong> <span class="date-val">...</span>
+        </p>
+        <p>
+          <strong class="time">Time: </strong> <span class="time-val">...</span>
+        </p>
+        <p>
+          <strong class="stats">Sensor Reading Stats: </strong> <span class="stats-val">...</span>
+        </p>
+        <p>
+          <strong class="load">Recent Load: </strong> <span class="load-val">...</span>
+        </p>
+        <p>
+          <strong class="trips">Total Number of Trips: </strong> <span class="trips-val">...</span>
+        </p>
+        <p>
+          <strong class="total">Total Production: </strong> <span class="total-val">...</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Data Logger Section -->
+    <section id="logger-section" class="hidden">
+      <h2>Onboard Weighing Scale Data Logger</h2>
+      <div class="filter-container">
+        <label for="colorFilter">Filter by Grade (Color): </label>
+        <div class="custom-dropdown" onclick="toggleFilterDropdown()">
+            <div class="selected-option" id="selectedFilter">All</div>
+            <div class="dropdown-options" id="filterOptions">
+                <div class="option" data-value="all" onclick="selectFilter('all')">All</div>
+                <div class="option" data-value="red" onclick="selectFilter('red')">Red</div>
+                <div class="option" data-value="blue" onclick="selectFilter('blue')">Blue</div>
+                <div class="option" data-value="yellow" onclick="selectFilter('yellow')">Yellow</div>
+                <div class="option" data-value="black" onclick="selectFilter('black')">Black</div>
+                <div class="option" data-value="white" onclick="selectFilter('white')">White</div>
+                <div class="option" data-value="green" onclick="selectFilter('green')">Green</div>
+            </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+              <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Truck Number</th>
+                  <th>Shift</th>
+                  <th>Sensor Status</th>
+                  <th>Weight (kg)</th>
+                  <th>Grade (Color)</th>
+              </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="report-section" class="hidden">
+      <div class="visual">
+        <h2>Storage Report</h2>
+        <canvas id="weightChart" width="800" height="800"></canvas>
     </div>
-    
+    </section>
+    <div>
+      <img src="img/truck.gif" alt="Truck" class="truck-image">
+    </div>
   </body>
 </html>
