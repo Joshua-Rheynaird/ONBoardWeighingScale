@@ -107,7 +107,7 @@ async function renderChart() {
         XLSX.writeFile(wb, "Barge report.xlsx");
 
         if (typeof AndroidInterface !== 'undefined') {
-          AndroidInterface.onDownloadClick(); // This calls the Android method
+          AndroidInterface.onDownloadClick("Barge report.xlsx"); // This calls the Android method
       }
     });
 }
