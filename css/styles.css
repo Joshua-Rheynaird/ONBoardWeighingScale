@@ -314,3 +314,33 @@ tr:hover {
     margin: 10px;
     justify-items: center;
   }
+  #bargeLimit{
+    padding: 0px;
+    width: 90px;
+    background: transparent;
+    border: transparent;
+    font-size: 15px;
+    margin-left: 5px;
+  }
+  .storage-plan{
+    display: flex;
+  }
+  .save-btn{
+    cursor: pointer;
+    margin: 10px;
+    padding: 10px 20px;
+    background-color: #AAC7D8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  .export-btn{
+    cursor: pointer;
+    margin: 10px;
+    padding: 10px 20px;
+    background-color: #AAC7D8;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }

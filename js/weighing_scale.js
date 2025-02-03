@@ -4,90 +4,111 @@ const SUPABASE_URL = "https://rvdzjuvyewgunhwpmlnu.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2ZHpqdXZ5ZXdndW5od3BtbG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgxNDQ3MTAsImV4cCI6MjA1MzcyMDcxMH0.hAohKOlZ3PguyYZeVDA1ngHUYWdqYXg0S2WJ-I2lCHA";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const REFRESH_INTERVAL = 3600000; // 1 hour in milliseconds
-
 let chart = null; // Track the existing chart instance
 
-async function renderChart() {
-  const data = await fetchTruckTrips();
-  if (!data || data.length === 0) return;
+async function fetchBargeLimit() {
+    const { data, error } = await supabase
+        .from('barges')
+        .select('limit')
+        .single(); // Fetch only one row
 
-  const tripDates = data.map(item => item.trip_date);
-  const avgWeights = data.map(item => item.avg_weight);
-
-  const MAX_WEIGHT = 50000000;
-  let maxCount = 0;
-
-  // Accumulate the weights to create a cumulative total
-  let cumulativeWeights = [];
-  let cumulativeTotal = 0;
-
-  avgWeights.forEach(weight => {
-    cumulativeTotal += weight;
-    cumulativeWeights.push(cumulativeTotal);
-    
-    if (cumulativeTotal >= MAX_WEIGHT) {
-      maxCount++;
-      cumulativeTotal = MAX_WEIGHT; // Limit the value to MAX_WEIGHT
+    if (error) {
+        console.error('Error fetching barge limit:', error);
+        return 100000; // Default max value if fetching fails
     }
-  });
 
-  //document.querySelector(".countReachedMax").innerHTML = maxCount;
-
-  //console.log(`The graph reached the maximum value (${MAX_WEIGHT} kg) or above ${maxCount} times.`);
-
-  const ctx = document.getElementById('weightChart').getContext('2d');
-
-  // Destroy the existing chart instance if it exists
-  if (chart) {
-    chart.destroy();
-  }
-
-  // Create a new chart
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: tripDates, // Use actual trip dates here
-      datasets: [{
-        label: 'Cumulative Total Weight (kg)',
-        data: cumulativeWeights, // Use accumulated weight data
-        borderColor: '#e6e6e6',
-        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-      },
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Date'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Cumulative Total Weight (kg)'
-          },
-          max: 100000, // Cap the y-axis to a max value for display purposes
-          ticks: {
-            // Optionally, set the tick step size for better visual scaling
-            stepSize: Math.ceil(MAX_WEIGHT / 5), // Divide the max weight into manageable steps
-            callback: function(value) {
-              // Display values in readable format
-              return value.toLocaleString();
-            }
-          }
-        }
-      }
-    }
-  });
+    return data.limit;
 }
+
+async function renderChart() {
+    const data = await fetchTruckTrips();
+    if (!data || data.length === 0) return;
+
+    const bargeLimit = await fetchBargeLimit(); // Get barge limit from Supabase
+
+    const tripDates = data.map(item => item.trip_date);
+    const avgWeights = data.map(item => item.avg_weight);
+
+    let maxCount = 0;
+    let cumulativeWeights = [];
+    let cumulativeTotal = 0;
+
+    avgWeights.forEach(weight => {
+        cumulativeTotal += weight;
+        cumulativeWeights.push(cumulativeTotal);
+
+        if (cumulativeTotal >= bargeLimit) {
+            maxCount++;
+            cumulativeTotal = bargeLimit; // Limit the value to bargeLimit
+        }
+    });
+
+    const ctx = document.getElementById('weightChart').getContext('2d');
+
+    if (chart) {
+        chart.destroy(); // Destroy the existing chart instance
+    }
+
+    // Create a new chart
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: tripDates,
+            datasets: [{
+                label: 'Cumulative Total Weight (kg)',
+                data: cumulativeWeights,
+                borderColor: '#e6e6e6',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Cumulative Total Weight (kg)'
+                    },
+                    max: bargeLimit, // Dynamically set max to barge limit
+                    ticks: {
+                        stepSize: Math.ceil(bargeLimit / 5), // Adjust tick spacing
+                        callback: function(value) {
+                            return value.toLocaleString(); // Format numbers with commas
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Add Download Button functionality for Excel
+    document.getElementById("downloadChart").addEventListener("click", function () {
+        const wb = XLSX.utils.book_new(); // Create a new workbook
+        const ws = XLSX.utils.aoa_to_sheet([
+            ["Date", "Average Weight (kg)"], // Header row
+            ...tripDates.map((date, index) => [date, avgWeights[index]]) // Data rows
+        ]);
+
+        XLSX.utils.book_append_sheet(wb, ws, "Chart Data"); // Append the sheet to the workbook
+
+        // Download the Excel file
+        XLSX.writeFile(wb, "Barge report.xlsx");
+    });
+}
+
+
 
 // Fetch truck trips data
 async function fetchTruckTrips() {
@@ -123,10 +144,12 @@ window.showSection = function (sectionId) {
     document.getElementById('record-button').classList.add('hidden');
     document.getElementById('logger-button').classList.remove('hidden');
     document.getElementById('report-button').classList.remove('hidden');
+    fetchData();
   } else if (sectionId === 'logger-section') {
     document.getElementById('logger-button').classList.add('hidden');
     document.getElementById('record-button').classList.remove('hidden');
     document.getElementById('report-button').classList.remove('hidden');
+    fetchData();
   } else if (sectionId === 'report-section') {
     document.getElementById('record-button').classList.remove('hidden');
     document.getElementById('logger-button').classList.remove('hidden');
@@ -320,6 +343,82 @@ function formatTime(timeString) {
   const formattedHours = hours % 12 || 12;
   return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
+
+async function fetchBarge() {
+  const { data, error } = await supabase
+      .from('barges')
+      .select('limit')
+      .single(); // Fetch one row only
+
+  if (error) {
+      console.error('Error fetching data:', error);
+      document.getElementById('bargeLimit').value = "Error loading data";
+      return;
+  }
+
+  document.getElementById('bargeLimit').value = formatNumber(data.limit);
+}
+fetchBarge();
+
+async function updateBarge() {
+  const bargeLimitEl = document.getElementById('bargeLimit');
+  const newLimit = bargeLimitEl.value.replace(/,/g, ''); // Remove commas
+
+  if (newLimit === "" || isNaN(newLimit)) {
+      alert("Please enter a valid number.");
+      return;
+  }
+
+  const { error } = await supabase
+      .from('barges')
+      .update({ limit: Number(newLimit) }) // Convert to number before saving
+      .match({ id: 1 }); // Change '1' to the actual row ID
+
+  if (error) {
+      console.error('Error updating data:', error);
+      alert('Failed to update limit.');
+  } else {
+      alert('Barge limit updated successfully!');
+      bargeLimitEl.value = formatNumber(newLimit); // Reformat after saving
+  }
+}
+
+// Function to format numbers with commas
+function formatNumber(num) {
+  return Number(num).toLocaleString(); // Format number with commas
+}
+
+// Restrict input to numbers only and auto-format
+document.getElementById('bargeLimit').addEventListener('input', function () {
+  let value = this.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+  if (value) {
+      this.value = formatNumber(value); // Format number
+  }
+});
+
+
+document.querySelector('.save-btn').addEventListener('click', updateBarge);
+
+
+async function exportChartDataToExcel() {
+  const data = await fetchTruckTrips();
+  if (!data || data.length === 0) return;
+
+  const wb = XLSX.utils.book_new();
+  const wsData = [["Date", "Average Weight (kg)"]]; // Header row
+
+  data.forEach(row => {
+    wsData.push([row.trip_date, row.avg_weight]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  XLSX.utils.book_append_sheet(wb, ws, "Truck Trips");
+  
+  XLSX.writeFile(wb, "Truck_Trips.xlsx");
+}
+
+document.getElementById("exportExcel").addEventListener("click", exportChartDataToExcel);
+
 
 // Auto-refresh every hour
 async function delayedTask(ms) {
