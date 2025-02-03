@@ -6,6 +6,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const REFRESH_INTERVAL = 3600000; // 1 hour in milliseconds
 let chart = null; // Track the existing chart instance
 
+function isWebView() {
+  return /wv|Android.*Version\/[\d.]+/.test(navigator.userAgent);
+}
+
+function handleDownload(url) {
+  if (isWebView()) {
+      window.location.href = url;
+  } else {
+      exportChartDataToExcel();
+  }
+}
+
 async function fetchBargeLimit() {
     const { data, error } = await supabase
         .from('barges')
@@ -105,6 +117,9 @@ async function renderChart() {
 
         // Download the Excel file
         XLSX.writeFile(wb, "Barge report.xlsx");
+    });
+    document.getElementById("downloadChart").addEventListener("click", function () {
+      handleDownload("https://joshua-rheynaird.github.io/ONBoardWeighingScale/#report-section");
     });
 }
 
@@ -398,26 +413,6 @@ document.getElementById('bargeLimit').addEventListener('input', function () {
 
 
 document.querySelector('.save-btn').addEventListener('click', updateBarge);
-
-
-async function exportChartDataToExcel() {
-  const data = await fetchTruckTrips();
-  if (!data || data.length === 0) return;
-
-  const wb = XLSX.utils.book_new();
-  const wsData = [["Date", "Average Weight (kg)"]]; // Header row
-
-  data.forEach(row => {
-    wsData.push([row.trip_date, row.avg_weight]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-  XLSX.utils.book_append_sheet(wb, ws, "Truck Trips");
-  
-  XLSX.writeFile(wb, "Truck_Trips.xlsx");
-}
-
-document.getElementById("exportExcel").addEventListener("click", exportChartDataToExcel);
 
 
 // Auto-refresh every hour
