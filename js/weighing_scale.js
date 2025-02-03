@@ -93,23 +93,48 @@ async function renderChart() {
         }
     });
 
-    // Add Download Button functionality for Excel
     document.getElementById("downloadChart").addEventListener("click", function () {
-        const wb = XLSX.utils.book_new(); // Create a new workbook
-        const ws = XLSX.utils.aoa_to_sheet([
-            ["Date", "Average Weight (kg)"], // Header row
-            ...tripDates.map((date, index) => [date, avgWeights[index]]) // Data rows
-        ]);
+      const wb = XLSX.utils.book_new(); // Create a new workbook
+      const ws = XLSX.utils.aoa_to_sheet([
+          ["Date", "Average Weight (kg)"], // Header row
+          ...tripDates.map((date, index) => [date, avgWeights[index]]) // Data rows
+      ]);
 
-        XLSX.utils.book_append_sheet(wb, ws, "Chart Data"); // Append the sheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Chart Data"); // Append the sheet to the workbook
 
-        // Download the Excel file
-        XLSX.writeFile(wb, "Barge report.xlsx");
+      // Convert the Excel workbook to a binary string (ArrayBuffer)
+      const fileData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
 
-        if (typeof AndroidInterface !== 'undefined') {
-          AndroidInterface.onDownloadClick("Barge report.xlsx"); // This calls the Android method
-      }
-    });
+      // Upload the file to Supabase Storage
+      uploadFile(fileData);
+  });
+}
+
+async function uploadFile(fileData) {
+  // Upload the file to Supabase Storage
+  const { data, error } = await supabase.storage
+      .from('reports')  // Your Supabase bucket name
+      .upload('reports/Barge_report.xlsx', fileData, {
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          upsert: true // Set to 'true' if you want to overwrite existing files with the same name
+      });
+
+  if (error) {
+      console.error("Error uploading file:", error);
+      return;
+  }
+
+  // Get the public URL of the uploaded file
+  const fileUrl = supabase.storage
+      .from('reports')
+      .getPublicUrl('reports/Barge_report.xlsx').publicURL;
+
+  console.log("File uploaded successfully. URL:", fileUrl);
+
+  // Trigger the download on Android
+  if (typeof AndroidInterface !== 'undefined') {
+      AndroidInterface.onDownloadClick(fileUrl); // Pass the Supabase URL
+  }
 }
 
 let modal = document.getElementById("confirmationModal");
