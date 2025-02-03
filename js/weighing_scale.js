@@ -6,18 +6,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const REFRESH_INTERVAL = 3600000; // 1 hour in milliseconds
 let chart = null; // Track the existing chart instance
 
-function isWebView() {
-  return /wv|Android.*Version\/[\d.]+/.test(navigator.userAgent);
-}
-
-function handleDownload(url) {
-  if (isWebView()) {
-      window.location.href = url;
-  } else {
-      exportChartDataToExcel();
-  }
-}
-
 async function fetchBargeLimit() {
     const { data, error } = await supabase
         .from('barges')
@@ -118,12 +106,30 @@ async function renderChart() {
         // Download the Excel file
         XLSX.writeFile(wb, "Barge report.xlsx");
     });
-    document.getElementById("downloadChart").addEventListener("click", function () {
-      handleDownload("https://joshua-rheynaird.github.io/ONBoardWeighingScale/#report-section");
-    });
 }
 
+let modal = document.getElementById("confirmationModal");
 
+window.openModal = function() {
+  modal.style.display = "flex"; // Show the modal
+}
+
+window.closeModal = function() {
+  modal.style.display = "none"; // Hide the modal
+}
+
+window.confirmDeletion = async function() {
+  const { data, error } = await supabase.rpc('truncate_loading_table');
+
+  if (error) {
+    console.error('Error truncating loading table:', error);
+    alert('Failed to truncate the loading table.');
+  } else {
+    alert('The loading table has been truncated successfully.');
+    fetchData(); // Refresh data after truncation
+  }
+  closeModal();
+}
 
 // Fetch truck trips data
 async function fetchTruckTrips() {

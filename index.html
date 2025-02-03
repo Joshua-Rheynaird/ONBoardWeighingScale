@@ -104,6 +104,23 @@
     </div>
     </section>
     <div>
+      <!-- The modal -->
+    <div id="confirmationModal" class="modal">
+      <div class="modal-content">
+        <h2>Are you sure?</h2>
+        <p>Make sure to download the data at the <span><a href="#report-section">Storage Report</a></span> first. This action cannot be undone!</p>
+        <div class="modal-actions">
+          <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+          <button class="confirm-btn" onclick="confirmDeletion()">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button to trigger deletion -->
+    <button class="delete-btn" onclick="openModal()">Clear All Data</button>
+
+    </div>
+    <div>
       <img src="img/truck.gif" alt="Truck" class="truck-image">
     </div>
   </body>
