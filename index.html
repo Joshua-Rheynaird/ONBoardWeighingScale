@@ -16,14 +16,14 @@
 
   </head>
   <body>
-    <div id="preloader" style="">
+    <div id="preloader">
       <img src="img/icon.png" alt="Loading..." class="preloader-image">
     </div>
       
     <div>
       <button id="record-button" class="nav-button" onclick="showSection('record-section')">Record</button>
       <button id="logger-button" class="nav-button" onclick="showSection('logger-section')">Data Logger</button>
-      <button id="report-button" class="nav-button" onclick="showSection('report-section')">Storage Report</button>
+      <button id="report-button" class="nav-button" onclick="showSection('report-section')">Stowage Report</button>
   </div>
 
     <!-- Record Section -->
@@ -50,7 +50,7 @@
         </p>
       </div>
       <div class="storage-plan">
-        <label for="bargeLimit">Storage Plan(kg): </label>
+        <label for="bargeLimit">Stowage Plan(kg): </label>
         <textarea id="bargeLimit"></textarea>
         <button class="save-btn">Save</button>
     </div>    
@@ -95,7 +95,7 @@
 
     <section id="report-section" class="hidden">
       <div class="visual">
-        <h2>Storage Report</h2>
+        <h2>Stowage Report</h2>
         <button id="downloadChart" class="export-btn">
           <i class="fa-solid fa-file-export"></i>
           <span>Download</span>
@@ -108,7 +108,7 @@
     <div id="confirmationModal" class="modal">
       <div class="modal-content">
         <h2>Are you sure?</h2>
-        <p>Make sure to download the data at the <span><a href="#report-section">Storage Report</a></span> first. This action cannot be undone!</p>
+        <p>Make sure to download the data at the <span><a href="#report-section">Stowage Report</a></span> first. This action cannot be undone!</p>
         <div class="modal-actions">
           <button class="cancel-btn" onclick="closeModal()">Cancel</button>
           <button class="confirm-btn" onclick="confirmDeletion()">Yes, Delete</button>

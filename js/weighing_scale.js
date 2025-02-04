@@ -93,6 +93,8 @@ async function renderChart() {
         }
     });
 
+    fetchTruckTrips();
+
     document.getElementById("downloadChart").addEventListener("click", function () {
       const wb = XLSX.utils.book_new(); // Create a new workbook
       const ws = XLSX.utils.aoa_to_sheet([
@@ -107,34 +109,61 @@ async function renderChart() {
 
       // Upload the file to Supabase Storage
       uploadFile(fileData);
+
   });
 }
-
 async function uploadFile(fileData) {
-  // Upload the file to Supabase Storage
-  const { data, error } = await supabase.storage
-      .from('reports')  // Your Supabase bucket name
-      .upload('reports/Barge_report.xlsx', fileData, {
-          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          upsert: true // Set to 'true' if you want to overwrite existing files with the same name
+  const supabaseBucket = 'reports';
+  const fileName = 'Barge_report.xlsx';
+  const filePath = `${fileName}`;
+
+  try {
+    // Convert the fileData ArrayBuffer to a Blob
+    const blob = new Blob([fileData], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+
+    // Step 1: Upload the file (upserts if exists)
+    const { data, error: uploadError } = await supabase
+      .storage
+      .from(supabaseBucket)
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        upsert: true // Replaces the file if it exists
       });
 
-  if (error) {
-      console.error("Error uploading file:", error);
-      return;
+    if (uploadError) throw uploadError;
+
+    console.log("File uploaded successfully.");
+
+    // Step 2: Get the new public URL
+    const { data: urlData } = await supabase
+      .storage
+      .from(supabaseBucket)
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData?.publicUrl;
+    console.log("New file URL:", publicUrl);
+
+    // Step 3: Trigger the download
+    if (typeof AndroidInterface !== 'undefined') {
+      AndroidInterface.onDownloadClick(publicUrl);
+    } else {
+      downloadFile(publicUrl, fileName);
+    }
+  } catch (err) {
+    console.error("Error in upload process:", err);
+    alert("Failed to upload report.");
   }
+}
 
-  // Get the public URL of the uploaded file
-  const fileUrl = supabase.storage
-      .from('reports')
-      .getPublicUrl('reports/Barge_report.xlsx').publicURL;
-
-  console.log("File uploaded successfully. URL:", fileUrl);
-
-  // Trigger the download on Android
-  if (typeof AndroidInterface !== 'undefined') {
-      AndroidInterface.onDownloadClick(fileUrl); // Pass the Supabase URL
-  }
+function downloadFile(url, filename = "downloaded_file") {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename; // This suggests a filename for the downloaded file
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 let modal = document.getElementById("confirmationModal");
@@ -458,3 +487,8 @@ async function delayedTask(ms) {
 }
 
 delayedTask(REFRESH_INTERVAL);
+
+function refreshData() {
+  console.log("Refreshing data...");
+  fetchData(); // Call fetchData again to reload the data
+}
