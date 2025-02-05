@@ -185,6 +185,7 @@ window.confirmDeletion = async function() {
   } else {
     alert('The loading table has been truncated successfully.');
     fetchData(); // Refresh data after truncation
+    location.reload();
   }
   closeModal();
 }
@@ -210,32 +211,38 @@ function initializeApp() {
     showSection('record-section');
   }
 }
-
-// Show a section and update history
+// Show a section with smooth transition and update history
 window.showSection = function (sectionId) {
-  document.querySelectorAll('section').forEach(section => {
-    section.classList.add('hidden');
+  document.querySelectorAll("section").forEach((section) => {
+    section.classList.add("hidden"); // Hide all sections
   });
-  document.getElementById(sectionId).classList.remove('hidden');
+
+  const targetSection = document.getElementById(sectionId);
+  targetSection.classList.remove("hidden"); // Show selected section
+
+  // Trigger fade-in effect
+  setTimeout(() => {
+    targetSection.classList.add("fade-in");
+  }, 10);
 
   // Show/hide buttons based on active section
-  if (sectionId === 'record-section') {
-    document.getElementById('record-button').classList.add('hidden');
-    document.getElementById('logger-button').classList.remove('hidden');
-    document.getElementById('report-button').classList.remove('hidden');
+  if (sectionId === "record-section") {
+    document.getElementById("record-button").classList.add("hidden");
+    document.getElementById("logger-button").classList.remove("hidden");
+    document.getElementById("report-button").classList.remove("hidden");
     fetchData();
-  } else if (sectionId === 'logger-section') {
-    document.getElementById('logger-button').classList.add('hidden');
-    document.getElementById('record-button').classList.remove('hidden');
-    document.getElementById('report-button').classList.remove('hidden');
+  } else if (sectionId === "logger-section") {
+    document.getElementById("logger-button").classList.add("hidden");
+    document.getElementById("record-button").classList.remove("hidden");
+    document.getElementById("report-button").classList.remove("hidden");
     fetchData();
-  } else if (sectionId === 'report-section') {
-    document.getElementById('record-button').classList.remove('hidden');
-    document.getElementById('logger-button').classList.remove('hidden');
-    document.getElementById('report-button').classList.add('hidden');
+  } else if (sectionId === "report-section") {
+    document.getElementById("record-button").classList.remove("hidden");
+    document.getElementById("logger-button").classList.remove("hidden");
+    document.getElementById("report-button").classList.add("hidden");
   }
 
-  history.pushState({ section: sectionId }, '', `#${sectionId}`);
+  history.pushState({ section: sectionId }, "", `#${sectionId}`);
 };
 
 // Handle back button
@@ -256,7 +263,7 @@ window.addEventListener('load', () => {
   setTimeout(() => {
     preloader.style.display = 'none';
     mainContent.style.display = 'block';
-  }, 2000);
+  }, 1000);
 
   initializeApp();
 });
@@ -288,8 +295,6 @@ window.addEventListener('load', () => {
 
 // Fetch and display data
 window.fetchData = async function () {
-  const selectedFilter = document.getElementById("selectedFilter").textContent.toLowerCase();
-  const colorFilter = selectedFilter === "all" ? "" : selectedFilter;
 
   let { data, error } = await supabase
     .from("loading")
@@ -301,9 +306,6 @@ window.fetchData = async function () {
     return;
   }
 
-  if (colorFilter) {
-    data = data.filter(row => row.grade && row.grade.toLowerCase() === colorFilter);
-  }
 
   const tableBody = document.getElementById("tableBody");
   tableBody.innerHTML = "";
@@ -390,21 +392,6 @@ window.selectColor = function (id, color) {
   updateGrade(id, color);
 };
 
-// Toggle filter dropdown
-window.toggleFilterDropdown = function () {
-  const dropdownOptions = document.getElementById("filterOptions");
-  dropdownOptions.classList.toggle("active");
-};
-
-// Select filter and fetch data
-window.selectFilter = function (value) {
-  const selectedFilter = document.getElementById("selectedFilter");
-  selectedFilter.textContent = value === "all" ? "All" : value;
-
-  toggleFilterDropdown();
-  fetchData();
-};
-
 // Format date
 function formatDate(dateString) {
   const [year, month, day] = dateString.split('-').map(Number);
@@ -459,6 +446,7 @@ async function updateBarge() {
   } else {
       alert('Barge limit updated successfully!');
       bargeLimitEl.value = formatNumber(newLimit); // Reformat after saving
+      location.reload();
   }
 }
 
@@ -478,17 +466,24 @@ document.getElementById('bargeLimit').addEventListener('input', function () {
 
 document.querySelector('.save-btn').addEventListener('click', updateBarge);
 
+window.refreshPage  = function (element) {
+  // Add the spin animation class
+  element.classList.add("spin");
+
+  // Remove animation class after the animation completes
+  setTimeout(() => {
+      element.classList.remove("spin");
+      location.reload(); // Refresh the page
+  }, 500); // Same duration as animation
+}
+
 
 // Auto-refresh every hour
 async function delayedTask(ms) {
   await new Promise((resolve) => setTimeout(() => resolve(), ms));
   console.log("Restarting every: " + ms);
   fetchData();
+  location.reload();
 }
 
 delayedTask(REFRESH_INTERVAL);
-
-function refreshData() {
-  console.log("Refreshing data...");
-  fetchData(); // Call fetchData again to reload the data
-}

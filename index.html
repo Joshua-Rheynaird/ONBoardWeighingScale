@@ -19,15 +19,22 @@
     <div id="preloader">
       <img src="img/icon.png" alt="Loading..." class="preloader-image">
     </div>
+    
       
-    <div>
+    <div class="nav">
       <button id="record-button" class="nav-button" onclick="showSection('record-section')">Record</button>
       <button id="logger-button" class="nav-button" onclick="showSection('logger-section')">Data Logger</button>
       <button id="report-button" class="nav-button" onclick="showSection('report-section')">Stowage Report</button>
   </div>
+  <div class="refresh-btn">
+    <button id="refresh" onclick="refreshPage(this)">
+      <i class="fa-solid fa-rotate"></i>
+    </button>
+  </div>
 
     <!-- Record Section -->
     <section id="record-section" class="hidden">
+      
       <div class="record-container">
         <h2>Onboard Weighing Scale</h2>
         <p>
@@ -49,6 +56,7 @@
           <strong class="total">Total Production: </strong> <span class="total-val">...</span>
         </p>
       </div>
+      <hr>
       <div class="storage-plan">
         <label for="bargeLimit">Stowage Plan(kg): </label>
         <textarea id="bargeLimit"></textarea>
@@ -59,21 +67,6 @@
     <!-- Data Logger Section -->
     <section id="logger-section" class="hidden">
       <h2>Onboard Weighing Scale Data Logger</h2>
-      <div class="filter-container">
-        <label for="colorFilter">Filter by Grade (Color): </label>
-        <div class="custom-dropdown" onclick="toggleFilterDropdown()">
-            <div class="selected-option" id="selectedFilter">All</div>
-            <div class="dropdown-options" id="filterOptions">
-                <div class="option" data-value="all" onclick="selectFilter('all')">All</div>
-                <div class="option" data-value="red" onclick="selectFilter('red')">Red</div>
-                <div class="option" data-value="blue" onclick="selectFilter('blue')">Blue</div>
-                <div class="option" data-value="yellow" onclick="selectFilter('yellow')">Yellow</div>
-                <div class="option" data-value="black" onclick="selectFilter('black')">Black</div>
-                <div class="option" data-value="white" onclick="selectFilter('white')">White</div>
-                <div class="option" data-value="green" onclick="selectFilter('green')">Green</div>
-            </div>
-        </div>
-      </div>
 
       <div class="table-container">
         <table>

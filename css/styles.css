@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
+html {
+    scroll-behavior: smooth;
+}
 *, body {
     font-family: "Rubik", serif;
     font-optical-sizing: auto;
@@ -20,20 +23,27 @@
     display: block;
   }
 
-  
+  .nav{
+    display: flex;
+    gap: 15px; 
+    justify-content: center; 
+    padding: 1px;
+  }
 .nav-button {
     cursor: pointer;
-    margin: 10px;
-    padding: 10px 20px;
     background-color: #AAC7D8;
-    color: white;
-    border: none;
+    color: #333;
     border-radius: 5px;
     transition: background-color 0.3s ease;
+    flex: 1;
+    min-width: 150px; 
+    text-align: center;
+    font-size: 16px;
+    border: none;
 }
 
 .nav-button:hover {
-    background-color: #0056b3;
+    background-color: #1e88e5;
 }
 
 #preloader {
@@ -87,7 +97,6 @@ section {
 
 .record-container, .table-container {
     width: 100%;
-    padding: 20px;
 }
 
 .record-container {
@@ -109,6 +118,7 @@ section {
 
 .table-container {
     overflow-x: auto;
+    height: 400px;
 }
 
 table {
@@ -128,6 +138,7 @@ th {
     color: white;
     position: sticky;
     top: 0;
+    z-index: 1;
 }
 
 tr:nth-child(even) {
@@ -136,61 +147,6 @@ tr:nth-child(even) {
 
 tr:hover {
     background-color: #AAC7D8;
-}
-
-.filter-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.custom-dropdown {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-}
-
-.selected-option {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    transition: all 0.3s ease;
-}
-
-.selected-option:hover {
-    background-color: #e9e9e9;
-}
-
-.dropdown-options {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 120px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.dropdown-options.active {
-    display: block;
-}
-
-.option {
-    padding: 8px 12px;
-    transition: all 0.3s ease;
-}
-
-.option:hover {
-    background-color: #f1f1f1;
-}
-
-.filter-container label {
-    color: #888;
 }
 
 @media (max-width: 768px) {
@@ -248,6 +204,7 @@ tr:hover {
     border: 2px solid #ccc;
     cursor: pointer;
     transition: all 0.3s ease;
+    z-index: 0;
 }
 
 .selected-color:hover {
@@ -324,6 +281,8 @@ tr:hover {
   }
   .storage-plan{
     display: flex;
+    margin-top: 30px;
+    left: 0;
   }
   .save-btn{
     cursor: pointer;
@@ -339,7 +298,7 @@ tr:hover {
     cursor: pointer;
     margin: 10px;
     padding: 10px 20px;
-    background-color: #AAC7D8;
+    background: transparent;
     border: none;
     border-radius: 5px;
     transition: background-color 0.3s ease;
@@ -381,6 +340,7 @@ tr:hover {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    background: transparent;
   }
   
   button:hover {
@@ -396,9 +356,16 @@ tr:hover {
     background-color: #f44336; /* Red color */
     color: white;
   }
+  .confirm-btn:hover{
+    -webkit-box-shadow:0px 0px 105px 45px rgba(244,66,54,0.9);
+    -moz-box-shadow: 0px 0px 105px 45px rgba(244,66,54,0.9);
+    box-shadow: 0px 0px 105px 45px rgba(244,66,54,0.9);
+    background-color: #f44336
+  }
   
   .delete-btn {
     padding: 5px 15px;
+    min-width: 50px;
     font-size: 18px;
     background-color: #f44336; /* Blue color */
     color: white;
@@ -408,6 +375,39 @@ tr:hover {
   }
   
   .delete-btn:hover {
-    background-color: #1e88e5;
+    background-color: #9c2820;
+  }
+  .refresh-btn button{
+    color: #DFEBF6;
+  }
+  .refresh-btn button:hover{
+    background: transparent;
+  }
+
+  .spin {
+    animation: spin 0.5s linear;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+.fade-in {
+    animation: fadeIn 0.9s ease-in-out;
   }
   
+  /* Keyframe animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
