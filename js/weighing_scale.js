@@ -51,47 +51,61 @@ async function renderChart() {
 
     // Create a new chart
     chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: tripDates,
-            datasets: [{
-                label: 'Cumulative Total Weight (kg)',
-                data: cumulativeWeights,
-                borderColor: '#e6e6e6',
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Cumulative Total Weight (kg)'
-                    },
-                    max: bargeLimit, // Dynamically set max to barge limit
-                    ticks: {
-                        stepSize: Math.ceil(bargeLimit / 5), // Adjust tick spacing
-                        callback: function(value) {
-                            return value.toLocaleString(); // Format numbers with commas
-                        }
-                    }
-                }
-            }
-        }
-    });
+      type: 'line',
+      data: {
+          labels: tripDates.map(date => new Date(date).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+          })), // Format dates to "MMM DD, YYYY"
+          datasets: [{
+              label: 'Cumulative Total Weight (kg)',
+              data: cumulativeWeights,
+              borderColor: '#e6e6e6',
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderWidth: 2
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: {
+                  position: 'top',
+              },
+          },
+          scales: {
+              x: {
+                  title: {
+                      display: true,
+                      text: 'Date'
+                  },
+                  ticks: {
+                      callback: function(value, index, values) {
+                          const date = new Date(tripDates[index]);
+                          return date.toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric' 
+                          }); // Format as "MMM DD" (e.g., "Mar 24")
+                      }
+                  }
+              },
+              y: {
+                  title: {
+                      display: true,
+                      text: 'Cumulative Total Weight (kg)'
+                  },
+                  max: bargeLimit, // Dynamically set max to barge limit
+                  ticks: {
+                      stepSize: Math.ceil(bargeLimit / 5), // Adjust tick spacing
+                      callback: function(value) {
+                          return value.toLocaleString(); // Format numbers with commas
+                      }
+                  }
+              }
+          }
+      }
+  });
+  
 
     fetchTruckTrips();
 
@@ -227,19 +241,19 @@ window.showSection = function (sectionId) {
 
   // Show/hide buttons based on active section
   if (sectionId === "record-section") {
-    document.getElementById("record-button").classList.add("hidden");
-    document.getElementById("logger-button").classList.remove("hidden");
-    document.getElementById("report-button").classList.remove("hidden");
+    document.getElementById("record-button").classList.add("active");
+    document.getElementById("logger-button").classList.remove("active");
+    document.getElementById("report-button").classList.remove("active");
     fetchData();
   } else if (sectionId === "logger-section") {
-    document.getElementById("logger-button").classList.add("hidden");
-    document.getElementById("record-button").classList.remove("hidden");
-    document.getElementById("report-button").classList.remove("hidden");
+    document.getElementById("logger-button").classList.add("active");
+    document.getElementById("record-button").classList.remove("active");
+    document.getElementById("report-button").classList.remove("active");
     fetchData();
   } else if (sectionId === "report-section") {
-    document.getElementById("record-button").classList.remove("hidden");
-    document.getElementById("logger-button").classList.remove("hidden");
-    document.getElementById("report-button").classList.add("hidden");
+    document.getElementById("record-button").classList.remove("active");
+    document.getElementById("logger-button").classList.remove("active");
+    document.getElementById("report-button").classList.add("active");
   }
 
   history.pushState({ section: sectionId }, "", `#${sectionId}`);
@@ -341,6 +355,7 @@ window.fetchData = async function () {
   });
 
   const truckTripsData = await fetchTruckTrips();
+  const totalAvgWeight = truckTripsData.reduce((sum, item) => sum + item.avg_weight, 0);
 
   if (data.length > 0) {
     const mostRecent = data[0];
@@ -355,7 +370,7 @@ window.fetchData = async function () {
     document.querySelector(".stats-val").textContent = `${mostRecent.sensor_status}`;
     document.querySelector(".load-val").textContent = `${mostRecent.weight.toFixed(2)} kg`;
     document.querySelector(".trips-val").textContent = truckTrips ? truckTrips.total_trips : "N/A";
-    document.querySelector(".total-val").textContent = `${data.reduce((sum, row) => sum + row.weight, 0).toFixed(2)} kg`;
+    document.querySelector(".total-val").textContent = `${totalAvgWeight.toFixed(2)} kg`;
   }
 
   renderChart(); // Render the chart after data is fetched
