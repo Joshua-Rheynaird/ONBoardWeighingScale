@@ -19,7 +19,25 @@
     <div id="preloader">
       <img src="img/icon.png" alt="Loading..." class="preloader-image">
     </div>
-    
+
+    <!-- Greeting Header -->
+    <div id="greeting" class="greeting hidden"></div>
+
+    <!-- User Info Modal -->
+    <div id="userInfoModal" class="modal">
+      <div class="modal-content">
+        <h2>Welcome!</h2>
+        <p>Please enter your information to continue.</p>
+        <form id="userForm" class="user-form">
+          <label for="userName">Name:</label>
+          <input type="text" id="userName" required />
+          <label for="dtNumber">DT Number:</label>
+          <input type="text" id="dtNumber" required />
+          <button type="submit" class="confirm-btn">Submit</button>
+        </form>
+      </div>
+    </div>
+
       
     <div class="nav">
       <button id="record-button" class="nav-button" onclick="showSection('record-section')">Record</button>
