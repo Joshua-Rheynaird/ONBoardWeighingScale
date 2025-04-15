@@ -42,6 +42,31 @@ function downloadFile(url, filename = "downloaded_file") {
 }
 
 // =================== DATA FUNCTIONS ===================
+async function fetchAdminPassword() {
+  try {
+    const { data, error } = await supabase
+      .from('barges')
+      .select('password')
+      .single();
+
+    if (error) {
+      console.error('Error fetching admin password:', error);
+      return null;
+    }
+
+    // Check if password is in JSONB format and extract admin password
+    if (data && data.password && data.password.default) {
+      return data.password.default;
+    } else {
+      console.warn('Admin password not found in expected format');
+      return null;
+    }
+  } catch (err) {
+    console.error('Error in fetchAdminPassword:', err);
+    return null;
+  }
+}
+
 async function fetchBargeLimit() {
   const { data, error } = await supabase
     .from('barges')
@@ -389,6 +414,18 @@ async function delayedTask(ms) {
 
 // =================== MODAL FUNCTIONS ===================
 function openModal() {
+  // Clear any previous error messages
+  const errorElement = document.getElementById('password-error');
+  if (errorElement) {
+    errorElement.textContent = '';
+  }
+  
+  // Clear any previous password input
+  const passwordInput = document.getElementById('admin-password');
+  if (passwordInput) {
+    passwordInput.value = '';
+  }
+  
   modal.style.display = "flex";
 }
 
@@ -405,6 +442,34 @@ function closeTruckModal() {
 }
 
 async function confirmDeletion() {
+  const passwordInput = document.getElementById('admin-password');
+  const errorElement = document.getElementById('password-error');
+  
+  if (!passwordInput || !passwordInput.value) {
+    errorElement.textContent = "Password is required";
+    return;
+  }
+  
+  // Show loading state
+  errorElement.textContent = "Verifying...";
+  
+  // Fetch the admin password from the database
+  const adminPassword = await fetchAdminPassword();
+  
+  if (!adminPassword) {
+    errorElement.textContent = "Could not validate password. Please try again later.";
+    return;
+  }
+  
+  if (passwordInput.value !== adminPassword) {
+    errorElement.textContent = "Incorrect password";
+    passwordInput.value = '';
+    return;
+  }
+
+  // Password is correct, proceed with deletion
+  errorElement.textContent = "Password correct. Deleting data...";
+  
   const { data, error } = await supabase.rpc('truncate_loading_table');
 
   if (error) {
@@ -435,14 +500,17 @@ function selectColor(id, color) {
 window.addEventListener("load", () => {
   // Hide preloader and show the user form
   const preloader = document.getElementById("preloader");
-  const modal = document.getElementById("userInfoModal");
+  const userModal = document.getElementById("userInfoModal");
   const mainContent = document.getElementById('main-content');
 
   setTimeout(() => {
     preloader.style.display = "none";
-    modal.style.display = "flex";
+    userModal.style.display = "flex";
     mainContent.style.display = 'block';
   }, 1000);
+
+  // Initialize confirmation modal
+  modal = document.getElementById("confirmationModal");
 
   initializeApp();
   fetchData();

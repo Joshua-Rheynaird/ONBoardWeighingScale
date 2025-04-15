@@ -582,3 +582,97 @@ button:hover {
         color: #f5f5f7;
     }
 }
+
+.password-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #DFEBF6;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    margin: 20px 0;
+    width: 90%;
+    max-width: 400px;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.9s ease-in-out;
+}
+
+.password-container label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #44576D;
+    text-align: left;
+}
+
+.password-container input[type="password"] {
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid #AAC7D8;
+    padding: 0 16px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s ease;
+    -webkit-appearance: none;
+    background-color: rgba(240, 240, 245, 0.8);
+}
+
+.password-container input[type="password"]:focus {
+    outline: none;
+    border-color: #1e88e5;
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.15);
+}
+
+.error-message {
+    color: #f44336;
+    font-size: 12px;
+    margin-top: -15px;
+    margin-bottom: 15px;
+    text-align: left;
+    display: none;
+}
+
+.error-message.visible {
+    display: block;
+}
+
+/* iOS Dark Mode support */
+@media (prefers-color-scheme: dark) {
+    .password-container {
+        background-color: #2c2c2e;
+    }
+    
+    .password-container label {
+        color: #AAC7D8;
+    }
+    
+    .password-container input[type="password"] {
+        background-color: rgba(30, 30, 30, 0.8);
+        border-color: #3a3a3c;
+        color: #f5f5f7;
+    }
+    
+    .password-container input[type="password"]::placeholder {
+        color: #8e8e93;
+    }
+    
+    .error-message {
+        color: #ff6b6b;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .password-container {
+        padding: 15px;
+    }
+
+    .password-container input[type="password"] {
+        height: 42px;
+        font-size: 14px;
+    }
+    
+    .password-container label {
+        font-size: 12px;
+    }
+}
