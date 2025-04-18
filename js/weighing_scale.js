@@ -534,53 +534,85 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
     document.getElementById("userInfoModal").style.display = "none";
   }
 });
-
 document.getElementById("downloadChart").addEventListener("click", async function () {
   try {
-    const { data: loadingData, error } = await supabase
-      .from('loading')
-      .select('*');
-
-    if (error) throw error;
-
-    if (!loadingData || loadingData.length === 0) {
-      alert("No data found in the loading table.");
+    // Fetch truck trips data for the chart
+    const truckTripsData = await fetchTruckTrips();
+    
+    if (!truckTripsData || truckTripsData.length === 0) {
+      alert("No data found for chart export.");
       return;
     }
+    
+    // Fetch loading data to get the grade colors
+    const { data: loadingData, error } = await supabase
+      .from('loading')
+      .select('created_at, truck_id, weight, grade')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    
+    // Create a mapping of truck_id and date to grade color
+    const gradeMapping = {};
+    loadingData.forEach(load => {
+      const date = new Date(load.created_at).toISOString().split('T')[0];
+      const key = `${load.truck_id}-${date}`;
+      gradeMapping[key] = load.grade;
+    });
 
-    // Replace truck_id with driver's name, and remove all ID fields
-    const formattedData = loadingData.map(row => {
-      const { id, truck_id, ...rest } = row;
+    // Format the data for Excel export
+    const formattedData = truckTripsData.map(trip => {
+      const tripDate = new Date(trip.trip_date);
+      const date = tripDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // Look up the grade color for this truck trip
+      const gradeKey = `${trip.truck_id}-${date}`;
+      const gradeColor = gradeMapping[gradeKey] || "N/A";
+      
       return {
-        ...rest,
-        driver_name: driverName,
-        dt_number: dtNo,
+        date: formatDate(date),
+        average_weight: trip.avg_weight.toFixed(2) + " kg",
+        grade: gradeColor, // Color representing grade
+        driver_name: driverName || "N/A",
+        dt_number: dtNo || "N/A"
       };
     });
 
-    // Create headers and rows
-    const headers = Object.keys(formattedData[0]);
-    const rows = formattedData.map(row => headers.map(header => row[header]));
-
+    // Create Excel workbook
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-    XLSX.utils.book_append_sheet(wb, ws, "Loading Table");
-
+    
+    // Convert array of objects to worksheet
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Trip Weight Data");
+    
+    // Generate Excel file as ArrayBuffer
     const fileData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-    // Download the file
-    const blob = new Blob([fileData], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `loading_table_${driverName || "driver"}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    
+    // Option 1: Direct download in browser
+    if (typeof AndroidInterface === 'undefined') {
+      // Create a blob from the array buffer
+      const blob = new Blob([fileData], { 
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      });
+      
+      // Create download link and trigger download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `barge_weight_data_${driverName || "driver"}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } 
+    // Option 2: Upload to Supabase and download (for Android interface)
+    else {
+      await uploadFile(fileData);
+    }
 
   } catch (err) {
-    console.error("Error downloading loading table:", err.message);
-    alert("Error downloading loading table. Check console for details.");
+    console.error("Error downloading chart data:", err.message);
+    alert("Error downloading chart data. Check console for details.");
   }
 });
 
