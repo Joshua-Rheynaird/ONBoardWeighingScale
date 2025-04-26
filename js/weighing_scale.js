@@ -11,6 +11,7 @@ let driverName = "";
 let dtNo = "";
 let modal = document.getElementById("confirmationModal");
 
+
 // =================== UTILITY FUNCTIONS ===================
 function formatDate(dateString) {
   const [year, month, day] = dateString.split('-').map(Number);
@@ -200,7 +201,7 @@ function updateDashboardStats(data, truckTripsData, totalAvgWeight) {
     document.querySelector(".time-val").textContent = formatTime(formattedTime);
     document.querySelector(".stats-val").textContent = `${mostRecent.sensor_status}`;
     document.querySelector(".load-val").textContent = `${mostRecent.weight.toFixed(2)} kg`;
-    document.querySelector(".trips-val").textContent = truckTrips ? truckTrips.total_trips : "N/A";
+    document.querySelector(".trips-val").textContent = truckTripsData ? truckTripsData.length : "N/A";
     document.querySelector(".total-val").textContent = `${totalAvgWeight.toFixed(2)} kg`;
   }
 }
@@ -547,7 +548,7 @@ document.getElementById("downloadChart").addEventListener("click", async functio
     // Fetch loading data to get the grade colors
     const { data: loadingData, error } = await supabase
       .from('loading')
-      .select('created_at, truck_id, weight, grade')
+      .select('created_at, truck_id, weight, grade, shift')
       .order('created_at', { ascending: false });
       
     if (error) throw error;
@@ -571,10 +572,12 @@ document.getElementById("downloadChart").addEventListener("click", async functio
       
       return {
         date: formatDate(date),
+        Shift: loadingData.shift,
         average_weight: trip.avg_weight.toFixed(2) + " kg",
         grade: gradeColor, // Color representing grade
-        driver_name: driverName || "N/A",
-        dt_number: dtNo || "N/A"
+        Scope: "BARGING",
+        Source_Destination: "SY2-BARGE"
+        
       };
     });
 
@@ -601,7 +604,7 @@ document.getElementById("downloadChart").addEventListener("click", async functio
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `barge_weight_data_${driverName || "driver"}.xlsx`;
+      a.download = `barge_weight_data_${driverName || "Driver"}_${dtNo || "DT Number"}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } 
